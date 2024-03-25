@@ -1,70 +1,93 @@
+// Copyright 2014 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Method Channel Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class PlatformChannel extends StatefulWidget {
+  const PlatformChannel({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<PlatformChannel> createState() => _PlatformChannelState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _PlatformChannelState extends State<PlatformChannel> {
+  // static const MethodChannel methodChannel =
+  // MethodChannel('samples.flutter.io/battery');
+  static const EventChannel eventChannel =
+  EventChannel('samples.flutter.io/charging');
 
-  void _incrementCounter() {
+
+  final MethodChannel getStringMethodChannel = const MethodChannel('method.channel.example/getString');
+  final MethodChannel voidMethodChannel = const MethodChannel('method.channel.example/voidMethod');
+  final MethodChannel timerChannel = const MethodChannel('method.channel.example/timer');
+
+
+
+  String _messageFromNative = 'No Native Message Available';
+  String _chargingStatus = 'Battery status: unknown.';
+
+  Future<void> _getBatteryLevel() async {
+    String returnedMEssage;
+    try {
+      final int? result = await getStringMethodChannel.invokeMethod('getStringMethodChannel');
+      returnedMEssage = 'Battery level: $result%.';
+    } on PlatformException {
+      returnedMEssage = 'Failed to get battery level.';
+    }
     setState(() {
-      _counter++;
+      _messageFromNative = returnedMEssage;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    eventChannel.receiveBroadcastStream().listen(_onEvent, onError: _onError);
+  }
+
+  void _onEvent(Object? event) {
+    setState(() {
+      _chargingStatus =
+      "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
+    });
+  }
+
+  void _onError(Object error) {
+    setState(() {
+      _chargingStatus = 'Battery status: unknown.';
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+    return Material(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(_messageFromNative, key: const Key('Battery level label')),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  onPressed: _getBatteryLevel,
+                  child: const Text('Refresh'),
+                ),
+              ),
+            ],
+          ),
+          Text(_chargingStatus),
+        ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+}
+
+void main() {
+  runApp(const MaterialApp(home: PlatformChannel()));
 }
