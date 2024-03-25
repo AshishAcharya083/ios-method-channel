@@ -14,15 +14,15 @@ class PlatformChannel extends StatefulWidget {
 class _PlatformChannelState extends State<PlatformChannel> {
   // EventChannel for receiving battery status updates from the native platform.
   static const EventChannel eventChannel =
-  EventChannel('samples.flutter.io/charging');
+      EventChannel('samples.flutter.io/charging');
 
   // MethodChannel for sending a request to the native platform to get a string.
   final MethodChannel getStringMethodChannel =
-  const MethodChannel('method.channel.example/getString');
+      const MethodChannel('method.channel.example/getString');
 
   // MethodChannel for invoking a void method on the native platform.
   final MethodChannel voidMethodChannel =
-  const MethodChannel('method.channel.example/voidMethod');
+      const MethodChannel('method.channel.example/voidMethod');
 
   String _messageFromNative = 'No Native Message Available';
   String _chargingStatus = 'Battery status: unknown.';
@@ -36,7 +36,7 @@ class _PlatformChannelState extends State<PlatformChannel> {
     try {
       // Invoking the method on the native platform and awaiting the response.
       final String? result =
-      await getStringMethodChannel.invokeMethod('getStringMethodChannel');
+          await getStringMethodChannel.invokeMethod('getStringMethodChannel');
       returnedMessage = '$result';
     } on PlatformException {
       returnedMessage = 'Failed to get String from native';
@@ -94,7 +94,7 @@ class _PlatformChannelState extends State<PlatformChannel> {
   void _onEvent(Object? event) {
     setState(() {
       _chargingStatus =
-      "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
+          "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
     });
   }
 
@@ -157,15 +157,32 @@ class _PlatformChannelState extends State<PlatformChannel> {
                 child: ElevatedButton(
                   onPressed: _startOrStopTimer,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    _isTimerRunning ? Colors.red : null, // Button color changes based on timer state.
+                    backgroundColor: _isTimerRunning
+                        ? Colors.red
+                        : null, // Button color changes based on timer state.
                   ),
                   child: Text(
                       _isTimerRunning ? 'Stop' : 'Call method every 5 seconds'),
                 ),
               ),
               const Divider(),
-              Text(_chargingStatus),
+              const SizedBox(
+                height: 40,
+              ),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                child: Text(
+                  "Instead of calling method every 5 seconds, you can listen to event channel like:",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(_chargingStatus,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
