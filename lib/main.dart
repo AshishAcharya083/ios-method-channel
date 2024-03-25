@@ -15,32 +15,40 @@ class PlatformChannel extends StatefulWidget {
 }
 
 class _PlatformChannelState extends State<PlatformChannel> {
-  // static const MethodChannel methodChannel =
-  // MethodChannel('samples.flutter.io/battery');
   static const EventChannel eventChannel =
-  EventChannel('samples.flutter.io/charging');
+      EventChannel('samples.flutter.io/charging');
 
-
-  final MethodChannel getStringMethodChannel = const MethodChannel('method.channel.example/getString');
-  final MethodChannel voidMethodChannel = const MethodChannel('method.channel.example/voidMethod');
-  final MethodChannel timerChannel = const MethodChannel('method.channel.example/timer');
-
-
+  final MethodChannel getStringMethodChannel =
+      const MethodChannel('method.channel.example/getString');
+  final MethodChannel voidMethodChannel =
+      const MethodChannel('method.channel.example/voidMethod');
+  final MethodChannel timerChannel =
+      const MethodChannel('method.channel.example/timer');
 
   String _messageFromNative = 'No Native Message Available';
   String _chargingStatus = 'Battery status: unknown.';
 
-  Future<void> _getBatteryLevel() async {
+  Future<void> _getStringFromNative() async {
     String returnedMEssage;
     try {
-      final int? result = await getStringMethodChannel.invokeMethod('getStringMethodChannel');
-      returnedMEssage = 'Battery level: $result%.';
+      final String? result =
+          await getStringMethodChannel.invokeMethod('getStringMethodChannel');
+      returnedMEssage = '$result';
     } on PlatformException {
-      returnedMEssage = 'Failed to get battery level.';
+      returnedMEssage = 'Failed to get String from native';
     }
     setState(() {
       _messageFromNative = returnedMEssage;
     });
+  }
+
+  Future<void> _printInConsoleNatively() async {
+    String returnedMEssage;
+    try {
+      await voidMethodChannel.invokeMethod('voidMethodChannel');
+    } on PlatformException {
+      returnedMEssage = 'Failed to print';
+    }
   }
 
   @override
@@ -52,7 +60,7 @@ class _PlatformChannelState extends State<PlatformChannel> {
   void _onEvent(Object? event) {
     setState(() {
       _chargingStatus =
-      "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
+          "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
     });
   }
 
@@ -71,12 +79,28 @@ class _PlatformChannelState extends State<PlatformChannel> {
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text(_messageFromNative, key: const Key('Battery level label')),
+              Text(_messageFromNative, key: const Key('msg')),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: ElevatedButton(
-                  onPressed: _getBatteryLevel,
-                  child: const Text('Refresh'),
+                  onPressed: _getStringFromNative,
+                  child: const Text('Get String from Native'),
+                ),
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  onPressed: _printInConsoleNatively,
+                  child: const Text('Print in Console Natively'),
+                ),
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  onPressed: _printInConsoleNatively,
+                  child: const Text('Call method every 5 seconds'),
                 ),
               ),
             ],

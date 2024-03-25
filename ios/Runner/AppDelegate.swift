@@ -15,6 +15,7 @@ enum ChannelName {
   static let voidMethodChannel = "method.channel.example/voidMethod"
   static let timerChannel = "method.channel.example/timer"
     static let eventChannel = "method.channel.example/eventChannel"
+      static let charging = "samples.flutter.io/charging"
 }
 
 enum BatteryState {
@@ -54,6 +55,16 @@ enum MyFlutterErrorCode {
       }
       self?.getString(result: result)
     })
+        
+        
+        voidChannel.setMethodCallHandler({
+      [weak self] (call: FlutterMethodCall, result: FlutterResult) -> Void in
+      guard call.method == "voidMethodChannel" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self?.printNatively()
+    })
 
     let chargingChannel = FlutterEventChannel(name: ChannelName.charging,
                                               binaryMessenger: controller.binaryMessenger)
@@ -62,12 +73,18 @@ enum MyFlutterErrorCode {
   }
 
   private func getString(result: FlutterResult) {
-    
-      let userName = device.userName
+      let device = UIDevice.current
+
+      let userName = device.systemName
    
-    result(String("This is string returned from \(userName)'s Device"))
+    result(String("This is string returned from \(userName) Device"))
   }
 
+    
+    private func printNatively(){
+        print("\n**** Hi this is Native print ****\n")
+    }
+    
   public func onListen(withArguments arguments: Any?,
                        eventSink: @escaping FlutterEventSink) -> FlutterError? {
     self.eventSink = eventSink
